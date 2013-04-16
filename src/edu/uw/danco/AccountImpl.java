@@ -3,6 +3,7 @@ package edu.uw.danco;
 import edu.uw.ext.framework.account.*;
 import edu.uw.ext.framework.order.Order;
 
+import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 /**
@@ -12,16 +13,43 @@ import java.util.prefs.Preferences;
  * Time: 6:13 PM
  */
 public class AccountImpl implements Account {
+    private static final Logger LOGGER = Logger.getLogger(AccountImpl.class.getName());
 
+    //make sure to add javadoc
+    /** the account name */
     private String name;
+
+    /** account balance */
     private int balance;
+
+    /** full name of account holder */
     private String fullName;
+
+    /** address of account holder */
     private Address address;
+
+    /** phone number for account holder */
     private String phone;
+
+    /** email address for account holder */
     private String email;
+
+    /** cc for account holder */
     private CreditCard creditCard;
+
+    /** password hash for account */
     private byte[] passwordHash;
 
+    private transient AccountManager accountManager;
+
+    private static int minAccountNameLength;
+    private static int minAccountBalance;
+    static {
+        final Preferences prefs = Preferences.userNodeForPackage(Account.class);
+        // init prefs
+        minAccountNameLength = prefs.getInt("minAccountLength", 8);
+        minAccountBalance = prefs.getInt("minAccountBalance", 0);
+    }
 
     /**
      * Default constructor for bean support
@@ -44,8 +72,7 @@ public class AccountImpl implements Account {
      * Sets the name
      */
     public void setName(String name) throws AccountException {
-        Preferences prefs = Preferences.userNodeForPackage(Account.class);
-        if (name.length() < prefs.getInt("minAccountLength", 8)) {
+        if (name.length() < minAccountNameLength) {
             throw new AccountException("Account name too short: " + name);
         }
         this.name = name;
@@ -66,6 +93,7 @@ public class AccountImpl implements Account {
      * sets the password hash
      */
     public void setPasswordHash(byte[] passwordHash) {
+        // make defensive copy of the array as a best practice
         this.passwordHash = passwordHash;
     }
 
@@ -84,8 +112,7 @@ public class AccountImpl implements Account {
      * Sets the balance
      */
     public void setBalance(int balance) {
-        Preferences prefs = Preferences.userNodeForPackage(Account.class);
-        if (balance < prefs.getInt("minAccountBalance", 0)) {
+        if (balance < minAccountBalance) {
 
         }
         this.balance = balance;
@@ -166,7 +193,7 @@ public class AccountImpl implements Account {
 
     @Override
     /**
-     * Gets the creadit card
+     * Gets the credit card
      */
     public CreditCard getCreditCard() {
         return creditCard;
@@ -175,7 +202,7 @@ public class AccountImpl implements Account {
 
     @Override
     /**
-     * Sets the creadit card
+     * Sets the credit card
      */
     public void setCreditCard(CreditCard card) {
         this.creditCard = card;
@@ -190,7 +217,11 @@ public class AccountImpl implements Account {
      * serialized with implementing class object.
      */
     public void registerAccountManager(AccountManager m) {
-        //no op
+        if (accountManager == null) {
+            accountManager = m;
+        } else {
+            LOGGER.severe("Should only set account manager one time");
+        }
     }
 
 
@@ -199,11 +230,7 @@ public class AccountImpl implements Account {
      * Incorporates the effect of an order in the balance.
      */
     public void reflectOrder(Order order, int executionPrice) {
-        if (order.isBuyOrder()) {
-            balance -= order.valueOfOrder(executionPrice);
-        }
-        else {
-            balance += order.valueOfOrder(executionPrice);
-        }
+        // valueOfOrder determines if the value of the order placed is positive or negative
+        balance += order.valueOfOrder(executionPrice);
     }
 }

@@ -19,6 +19,10 @@ public class DbHandler extends Handler {
                     + " (level, sequence, class, method, time, message)"
                     + " VALUES (?, ?, ?, ?, ?, ?)";
 
+    //implement constructor to initialize -- register drive with Class.forName(driverName)
+    /** The jdbc driver */
+    private final String jdbcDriver = LogManager.getLogManager().getProperty("edu.uw.danco.logging.DbHandler.driver");
+
     /** The database URL. */
     private final String dbUrl = LogManager.getLogManager().getProperty("edu.uw.danco.logging.DbHandler.url");
 
@@ -30,8 +34,13 @@ public class DbHandler extends Handler {
 
 
 
+    // make the connection and the prepared statement instance methods as well -- the class itself is a Singleton
+
+
+
     @Override
     public void publish(LogRecord record) {
+        // should implement isLoggable to test if record should be logged
         if (getLevel().intValue() < record.getLevel().intValue()) {
             return;
         }
@@ -50,7 +59,7 @@ public class DbHandler extends Handler {
             conn = DriverManager.getConnection(dbUrl, username, password);
             ps = conn.prepareStatement(INSERT_LOG_RECORD_SQL);
             ps.setString(1, record.getLevel().toString());
-            ps.setString(2, Long.toString(record.getSequenceNumber()));
+            ps.setLong(2, record.getSequenceNumber()); //this should be a Long
             ps.setString(3, record.getSourceClassName());
             ps.setString(4, record.getSourceMethodName());
             ps.setLong(5, new Date(new java.util.Date().getTime()).getTime());
@@ -60,6 +69,7 @@ public class DbHandler extends Handler {
 
         } catch (SQLException e) {
             e.printStackTrace();
+
         } finally {
             if (ps != null) {
                 try {
@@ -85,6 +95,6 @@ public class DbHandler extends Handler {
 
     @Override
     public void close() throws SecurityException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        // check the prepared statement and the conn, close it here
     }
 }
