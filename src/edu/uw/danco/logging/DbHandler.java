@@ -12,7 +12,10 @@ import java.util.logging.Formatter;
  * Date: 4/13/13
  * Time: 6:41 PM
  */
-public class DbHandler extends Handler {
+public final class DbHandler extends Handler {
+    /** Logger */
+    private static final Logger logger = Logger.getLogger(DbHandler.class.getName());
+
     /** SQL for inserting a log record. */
     private static final String INSERT_LOG_RECORD_SQL =
             "INSERT INTO log"
@@ -35,12 +38,23 @@ public class DbHandler extends Handler {
 
 
     // make the connection and the prepared statement instance methods as well -- the class itself is a Singleton
+    /** DB connection object */
+    private Connection conn = null;
 
+    /** Prepared statement used by logger */
+    private PreparedStatement ps = null;
+
+
+    /**
+     * Instantiate the object (makes a connection to the target DB)
+     * */
+    public DbHandler() {
+        connect();
+    }
 
 
     @Override
     public void publish(LogRecord record) {
-        // should implement isLoggable to test if record should be logged
         if (getLevel().intValue() < record.getLevel().intValue()) {
             return;
         }
@@ -53,13 +67,10 @@ public class DbHandler extends Handler {
         Formatter f = getFormatter();
 
         // insert record into DB
-        Connection conn = null;
-        PreparedStatement ps = null;
         try {
-            conn = DriverManager.getConnection(dbUrl, username, password);
-            ps = conn.prepareStatement(INSERT_LOG_RECORD_SQL);
+            connect();
             ps.setString(1, record.getLevel().toString());
-            ps.setLong(2, record.getSequenceNumber()); //this should be a Long
+            ps.setLong(2, record.getSequenceNumber());
             ps.setString(3, record.getSourceClassName());
             ps.setString(4, record.getSourceMethodName());
             ps.setLong(5, new Date(new java.util.Date().getTime()).getTime());
@@ -70,20 +81,19 @@ public class DbHandler extends Handler {
         } catch (SQLException e) {
             e.printStackTrace();
 
-        } finally {
-            if (ps != null) {
-                try {
-                    ps.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+        }
+    }
+
+    /**
+     * Initialize the connection and prepared statement
+     * */
+    private void connect() {
+        if (conn == null || ps == null) {
+            try {
+                conn = DriverManager.getConnection(dbUrl, username, password);
+                ps = conn.prepareStatement(INSERT_LOG_RECORD_SQL);
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -95,6 +105,19 @@ public class DbHandler extends Handler {
 
     @Override
     public void close() throws SecurityException {
-        // check the prepared statement and the conn, close it here
+        if (ps != null) {
+            try {
+                ps.close();
+            } catch (SQLException e) {
+                logger.log(Level.WARNING, "Unable to close the prepared statement", e);
+            }
+        }
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                logger.log(Level.WARNING, "Unable to close the connection", e);
+            }
+        }
     }
 }
