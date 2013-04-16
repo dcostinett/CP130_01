@@ -1,3 +1,6 @@
+package edu.uw.danco;
+
+
 import edu.uw.danco.AccountFactoryImpl;
 import edu.uw.ext.framework.account.Account;
 import org.junit.Test;

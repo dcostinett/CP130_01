@@ -13,7 +13,7 @@ import java.util.prefs.Preferences;
  * Date: 4/13/13
  * Time: 6:17 PM
  */
-public class AccountFactoryImpl implements AccountFactory {
+public final class AccountFactoryImpl implements AccountFactory {
     private static final Logger LOGGER = Logger.getLogger(AccountFactoryImpl.class.getName());
 
     @Override

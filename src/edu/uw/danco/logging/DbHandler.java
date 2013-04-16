@@ -23,8 +23,6 @@ public final class DbHandler extends Handler {
                     + " VALUES (?, ?, ?, ?, ?, ?)";
 
     //implement constructor to initialize -- register drive with Class.forName(driverName)
-    /** The jdbc driver */
-    private final String jdbcDriver = LogManager.getLogManager().getProperty("edu.uw.danco.logging.DbHandler.driver");
 
     /** The database URL. */
     private final String dbUrl = LogManager.getLogManager().getProperty("edu.uw.danco.logging.DbHandler.url");
@@ -49,6 +47,13 @@ public final class DbHandler extends Handler {
      * Instantiate the object (makes a connection to the target DB)
      * */
     public DbHandler() {
+        try {
+            /* The jdbc driver */
+            String jdbcDriver = LogManager.getLogManager().getProperty("edu.uw.danco.logging.DbHandler.driver");
+            Class.forName(jdbcDriver);
+        } catch (ClassNotFoundException e) {
+            logger.log(Level.SEVERE, "Unable to load jdbc driver", e);
+        }
         connect();
     }
 
@@ -64,8 +69,6 @@ public final class DbHandler extends Handler {
             return;
         }
 
-        Formatter f = getFormatter();
-
         // insert record into DB
         try {
             connect();
@@ -77,10 +80,8 @@ public final class DbHandler extends Handler {
             ps.setString(6, record.getMessage());
 
             ps.executeUpdate();
-
         } catch (SQLException e) {
-            e.printStackTrace();
-
+            logger.log(Level.SEVERE, "Unable to insert log record", e);
         }
     }
 
@@ -93,14 +94,14 @@ public final class DbHandler extends Handler {
                 conn = DriverManager.getConnection(dbUrl, username, password);
                 ps = conn.prepareStatement(INSERT_LOG_RECORD_SQL);
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "Unable to connect to target DB", e);
             }
         }
     }
 
     @Override
     public void flush() {
-
+        //no op
     }
 
     @Override

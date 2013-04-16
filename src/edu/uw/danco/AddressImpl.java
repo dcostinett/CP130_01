@@ -8,7 +8,7 @@ import edu.uw.ext.framework.account.Address;
  * Date: 4/13/13
  * Time: 6:16 PM
  */
-public class AddressImpl implements Address {
+public final class AddressImpl implements Address {
     /** serialVersionUID */
     private static final long serialVersionUID = 7549265121331107862L;
 

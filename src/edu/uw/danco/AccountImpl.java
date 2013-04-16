@@ -12,10 +12,10 @@ import java.util.prefs.Preferences;
  * Date: 4/13/13
  * Time: 6:13 PM
  */
-public class AccountImpl implements Account {
+public final class AccountImpl implements Account {
+    /** Log important events */
     private static final Logger LOGGER = Logger.getLogger(AccountImpl.class.getName());
 
-    //make sure to add javadoc
     /** the account name */
     private String name;
 
@@ -40,10 +40,15 @@ public class AccountImpl implements Account {
     /** password hash for account */
     private byte[] passwordHash;
 
+    /** unserializable account manager */
     private transient AccountManager accountManager;
 
-    private static int minAccountNameLength;
-    private static int minAccountBalance;
+    /** Preference value holder for min account name length */
+    private static final int minAccountNameLength;
+
+    /** Preference value holder for min account balance */
+    private static final int minAccountBalance;
+
     static {
         final Preferences prefs = Preferences.userNodeForPackage(Account.class);
         // init prefs
@@ -113,7 +118,7 @@ public class AccountImpl implements Account {
      */
     public void setBalance(int balance) {
         if (balance < minAccountBalance) {
-
+            //log this maybe?
         }
         this.balance = balance;
     }

@@ -8,12 +8,21 @@ import edu.uw.ext.framework.account.CreditCard;
  * Date: 4/13/13
  * Time: 6:17 PM
  */
-public class CreditCardImpl implements CreditCard {
+public final class CreditCardImpl implements CreditCard {
 
+    /** the issuer */
     private String issuer;
+
+    /** type of credit card */
     private String type;
+
+    /** name of account holder */
     private String holder;
+
+    /** credit card account number */
     private String accountNumber;
+
+    /** credit card expiration date */
     private String expirationDate;
 
     @Override
